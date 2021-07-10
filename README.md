@@ -8,7 +8,7 @@
 
 |項目      |説明|
 |----      |----|
-|Add       |レイヤー名の置換名に文字列を追加（前後）|
+|Add       |GameObject名の置換名に文字列を追加（前後）|
 |Replace   |GameObject名の置換|
 |Serial Num|GameObject名に連番付け＋上書きして連番（前後＋桁ぞろえ）|
 |Delete    |GameObject名から指定桁数文字列を削除（前後）|
