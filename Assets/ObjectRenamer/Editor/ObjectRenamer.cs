@@ -19,10 +19,10 @@ namespace OMSB
         private const string    TOOL_NAME       = "ObjectRenamer";
 
         private static readonly string[] TAB_NAMES = new string[] { 
-            "追加",
-            "置換",
-            "連番",
-            "削除" 
+            "Add",
+            "Replace",
+            "Serial Num",
+            "Delete" 
         };
 
         #endregion
@@ -144,7 +144,16 @@ namespace OMSB
                     break;
             }
 
-            LayoutCheck();
+            LayoutPreview();
+
+            EditorGUILayout.Space();
+            EditorGUIEx.DrawSeparator();
+            EditorGUILayout.Space();
+
+            if (GUILayout.Button("Rename")) {
+                Rename();
+            }
+            EditorGUILayout.Space();
         }
 
         /// <summary>
@@ -153,15 +162,9 @@ namespace OMSB
         private void LayoutAdd() 
         {
             if (EditorGUIEx.BeginGroup("Option")) {
-                m_AddPopup = (EAddPopup)EditorGUILayout.EnumPopup("前後(Prefix/Suffix)", (System.Enum)m_AddPopup);
-                m_AddPosition = EditorGUILayout.IntField("何桁目に", m_AddPosition);
-                m_AddText = EditorGUILayout.TextField("追加文字", m_AddText);
-
-                EditorGUILayout.Space();
-
-                if (GUILayout.Button("追加する")) {
-                    Rename(AddName());
-                }
+                m_AddPopup = (EAddPopup)EditorGUILayout.EnumPopup("Prefix/Suffix", (System.Enum)m_AddPopup);
+                m_AddPosition = EditorGUILayout.IntField("Digit", m_AddPosition);
+                m_AddText = EditorGUILayout.TextField("Add Test", m_AddText);
 
                 EditorGUIEx.EndGroup();
             }
@@ -173,14 +176,8 @@ namespace OMSB
         private void LayoutReplace() 
         {
             if (EditorGUIEx.BeginGroup("Option")) {
-                m_ReplaceBeforeText = EditorGUILayout.TextField("この文字を", m_ReplaceBeforeText);
-                m_ReplaceAfterText = EditorGUILayout.TextField("この文字に", m_ReplaceAfterText);
-
-                EditorGUILayout.Space();
-
-                if (GUILayout.Button("置換する")) {
-                    Rename(ReplaceName());
-                }
+                m_ReplaceBeforeText = EditorGUILayout.TextField("Before", m_ReplaceBeforeText);
+                m_ReplaceAfterText = EditorGUILayout.TextField("After", m_ReplaceAfterText);
 
                 EditorGUIEx.EndGroup();
             }
@@ -192,19 +189,13 @@ namespace OMSB
         private void LayoutSerialNum() 
         {
             if (EditorGUIEx.BeginGroup("Option")) {
-                m_FlagOverride = EditorGUILayout.Toggle("上書き", m_FlagOverride);
+                m_FlagOverride = EditorGUILayout.Toggle("Is Override", m_FlagOverride);
                 if (m_FlagOverride) {
-                    m_OverrideText = EditorGUILayout.TextField("置き換え文字", m_OverrideText);
+                    m_OverrideText = EditorGUILayout.TextField("Replace Text", m_OverrideText);
                 }
-                m_SerialNumPopup = (ESerialNumPopup)EditorGUILayout.EnumPopup("前後(Prefix/Suffix)", (System.Enum)m_SerialNumPopup);
-                m_SerialNumStart = EditorGUILayout.IntField("開始数", m_SerialNumStart);
-                m_SerialNumDigit = EditorGUILayout.IntField("桁数", m_SerialNumDigit);
-
-                EditorGUILayout.Space();
-
-                if (GUILayout.Button("連番付け")) {
-                    Rename(AddSerialNum());
-                }
+                m_SerialNumPopup = (ESerialNumPopup)EditorGUILayout.EnumPopup("Prefix/Suffix", (System.Enum)m_SerialNumPopup);
+                m_SerialNumStart = EditorGUILayout.IntField("Start Num", m_SerialNumStart);
+                m_SerialNumDigit = EditorGUILayout.IntField("Digit Num", m_SerialNumDigit);
 
                 EditorGUIEx.EndGroup();
             }
@@ -216,18 +207,12 @@ namespace OMSB
         private void LayoutDelete() 
         {
             if (EditorGUIEx.BeginGroup("Option")) {
-                m_DeletePopup = (EDeletePopup)EditorGUILayout.EnumPopup("削除方法", (System.Enum)m_DeletePopup);
+                m_DeletePopup = (EDeletePopup)EditorGUILayout.EnumPopup("Delete Type", (System.Enum)m_DeletePopup);
                 if (m_DeletePopup == EDeletePopup.Select) {
-                    m_DeleteNumStart = EditorGUILayout.IntField("何桁目から", m_DeleteNumStart);
-                    m_DeleteNumDigit = EditorGUILayout.IntField("桁数", m_DeleteNumDigit);
+                    m_DeleteNumStart = EditorGUILayout.IntField("Start Digit", m_DeleteNumStart);
+                    m_DeleteNumDigit = EditorGUILayout.IntField("Digit", m_DeleteNumDigit);
                 } else {
-                    m_DeleteNumDigit = EditorGUILayout.IntField("桁数", m_DeleteNumDigit);
-                }
-
-                EditorGUILayout.Space();
-
-                if (GUILayout.Button("削除する")) {
-                    Rename(DeleteName());
+                    m_DeleteNumDigit = EditorGUILayout.IntField("Digit", m_DeleteNumDigit);
                 }
 
                 EditorGUIEx.EndGroup();
@@ -237,16 +222,16 @@ namespace OMSB
         /// <summary>
         /// 変更確認のレイアウト
         /// </summary>
-        private void LayoutCheck() 
+        private void LayoutPreview() 
         {
-            if (EditorGUIEx.BeginGroup("Check")) {
+            if (EditorGUIEx.BeginGroup("Preview")) {
                 // 何も選択されていなかったら
                 if (!Selection.activeGameObject) {
-                    EditorGUILayout.HelpBox("オブジェクトを選択してください", MessageType.Warning);
+                    EditorGUILayout.HelpBox("Select Hierarchy GameObjects", MessageType.Warning);
                 } else {
                     using (new EditorGUILayout.HorizontalScope()) {
-                        LayoutCheckBefore();
-                        LayoutCheckAfter();
+                        LayoutPreviewBefore();
+                        LayoutPreviewAfter();
                     }
                 }
             }
@@ -255,10 +240,10 @@ namespace OMSB
         /// <summary>
         /// 変更前のレイアウト
         /// </summary>
-        private void LayoutCheckBefore() 
+        private void LayoutPreviewBefore() 
         {
             using (new EditorGUILayout.VerticalScope()) {
-                EditorGUIEx.DrawSubTitle("変更前");
+                EditorGUIEx.DrawSubTitle("Before");
                 using (var scroll = new EditorGUILayout.ScrollViewScope(m_BeforeScrollPos, GUI.skin.box)) {
                     m_BeforeScrollPos = scroll.scrollPosition;
 
@@ -272,10 +257,10 @@ namespace OMSB
         /// <summary>
         /// 変更後のレイアウト
         /// </summary>
-        private void LayoutCheckAfter() 
+        private void LayoutPreviewAfter() 
         {
             using (new EditorGUILayout.VerticalScope()) {
-                EditorGUIEx.DrawSubTitle("変更後");
+                EditorGUIEx.DrawSubTitle("After");
                 using (var scroll = new EditorGUILayout.ScrollViewScope(m_AfterScrollPos, GUI.skin.box)) {
                     m_AfterScrollPos = scroll.scrollPosition;
 
@@ -313,24 +298,31 @@ namespace OMSB
         /// <summary>
         /// 各リネーム処理の反映処理
         /// </summary>
-        /// <param name="_objNames">各リネーム処理後のオブジェクト名のリスト</param>
-        private void Rename(List<string> _objNames)
+        private void Rename()
         {
-            var selectObjs = new List<GameObject>();
-            var count = 0;
-
-            foreach (var obj in Selection.objects) {
-                selectObjs.Add(obj as GameObject);
+            var names = new List<string>();
+            switch (m_SelecteTab) {
+                case ETab.Add:
+                    names = AddName();
+                    break;
+                case ETab.Replace:
+                    names = ReplaceName();
+                    break;
+                case ETab.SerialNum:
+                    names = AddSerialNum();
+                    break;
+                case ETab.Delete:
+                    names = DeleteName();
+                    break;
             }
 
+            var selectGameObjs = new List<GameObject>(Selection.gameObjects);
             // Hierarchyの上からの順にソート
-            selectObjs.Sort((a, b) => a.transform.GetSiblingIndex() - b.transform.GetSiblingIndex());
+            selectGameObjs.Sort((a, b) => a.transform.GetSiblingIndex() - b.transform.GetSiblingIndex());
 
-            foreach (var obj in selectObjs) {
-                var gameObj = obj as GameObject;
-                Undo.RecordObject(gameObj, "Rename");
-                gameObj.name = _objNames[count];
-                count++;
+            for (int i = 0; i < selectGameObjs.Count; i++) {
+                Undo.RecordObject(selectGameObjs[i], TOOL_NAME);
+                selectGameObjs[i].name = names[i];
             }
         }
 
