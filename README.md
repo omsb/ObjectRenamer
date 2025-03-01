@@ -16,7 +16,7 @@
 # インストール方法
 ![image](https://user-images.githubusercontent.com/1855970/125154251-1180df80-e194-11eb-90d7-a11e31e40c5f.png)<br>
 PackageManagerより「Add package from git URL」に以下のURLを入力してください。<br>
-`https://github.com/omsb/ObjectRenamer.git?path=Assets/ObjectRenamer`
+`https://github.com/omsb/ObjectRenamer.git`
 
 # 使い方
 1.上部タブより「OMSB」>「ObjectRenamer」を選択<br>
